@@ -1,0 +1,64 @@
+---
+title: "GoFitts jar group analysis"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+# Load necessary packages
+require(tidyverse)
+
+# Define the path to your .sd2 files
+data_path <- "../"  # <- Replace this with your actual path
+
+# List all .sd2 files
+sd2_files <- list.files(path = data_path, pattern = "\\.sd2$", full.names = TRUE)
+
+# Read and combine all .sd2 files
+all_data <- map_dfr(sd2_files, read_csv, show_col_types = FALSE)
+
+# Compute average TP(bps) per file
+average_tp_per_file <- map_dbl(sd2_files, function(file) {
+  data <- read_csv(file, show_col_types = FALSE)
+  mean(data$`TP(bps)`, na.rm = TRUE)
+})
+
+# Print average TP(bps) per file
+tp_summary <- tibble(
+  File = basename(sd2_files),
+  Avg_TP_bps = average_tp_per_file
+)
+print(tp_summary)
+
+# Overall average TP(bps)
+overall_avg_tp <- mean(all_data$`TP(bps)`, na.rm = TRUE)
+cat("Overall average TP(bps):", overall_avg_tp, "\n")
+
+# Plot histogram of TP(bps)
+ggplot(all_data, aes(x = `TP(bps)`)) +
+  geom_histogram(binwidth = 0.5, color = "black", fill = "skyblue") +
+  geom_vline(xintercept = overall_avg_tp, linetype = "dashed", color = "red") +
+  labs(
+    title = "Histogram of Throughput (TP) in bps",
+    x = "TP (bps)",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
